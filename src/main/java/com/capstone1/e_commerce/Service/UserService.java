@@ -1,16 +1,28 @@
 package com.capstone1.e_commerce.Service;
 
+// case 1: success
+// case 2: no merchant
+// case 3: no product
+// case 4: no user
+// case 5: no stock
+
+
+import com.capstone1.e_commerce.Model.Product;
 import com.capstone1.e_commerce.Model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 
+@SuppressWarnings("LombokGetterMayBeUsed")
 @Service
 @RequiredArgsConstructor
 public class UserService {
     ArrayList<User> users = new ArrayList<>();
-
+    private final ProductService productService;
+    private final MerchantService merchantService;
+    private final MerchantStockService merchantStockService;
+    //crud
     public ArrayList<User> getUsers(){
         return users;
     }
@@ -46,8 +58,26 @@ public class UserService {
         return false;
     }
 
-
+    //logic
     public boolean userExist(String id){
         return users.stream().anyMatch(e-> e.getId().equalsIgnoreCase(id));
     }
+
+    //extra
+    public String buyProduct(String productID, String merchantID, String userID) {
+        Product product = productService.productExist(productID);
+        if(product == null){
+            return "product";
+        }
+        for (int i = 0; i < users.size() ; i++) {
+            if(users.get(i).getId().equalsIgnoreCase(userID)){
+                if(users.get(i).getBalance() >= product.getPrice()){
+                    if(merchantStockService.stockRemains(merchantID))
+                }
+            }
+        }
+    }
+
+    public ArrayList<Product> findCheapestItem(){}
+
 }
