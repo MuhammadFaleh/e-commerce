@@ -22,17 +22,17 @@ public class MerchantService {
         return true;
     }
 
-    public int updateMerchant(String id, Merchant merchant){
+    public boolean updateMerchant(String id, Merchant merchant){
         if(!id.equalsIgnoreCase(merchant.getId())){
-            return 0; //merchant id doesn't match entered id
+            return false; //merchant id doesn't match entered id
         }
         for (int i = 0; i<merchants.size(); i++){
             if(id.equalsIgnoreCase(merchants.get(i).getId())){
                 merchants.set(i, merchant);
-                return 1;
+                return true;
             }
         }
-        return 2; // merchant not found
+        return false; // merchant not found
     }
 
     public boolean deleteMerchant(String id){

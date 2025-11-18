@@ -5,6 +5,8 @@ import com.capstone1.e_commerce.Model.Merchant;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class CategoryService {
@@ -22,17 +24,17 @@ public class CategoryService {
         return true;
     }
 
-    public int updateCategory(String id, Category category){
+    public boolean updateCategory(String id, Category category){
         if(!id.equalsIgnoreCase(category.getId())){
-            return 0; // Category id doesn't match entered id
+            return false; // Category id doesn't match entered id
         }
         for (int i = 0; i< categories.size(); i++){
             if(id.equalsIgnoreCase(categories.get(i).getId())){
                 categories.set(i, category);
-                return 1;
+                return true;
             }
         }
-        return 2; // category not found
+        return false; // category not found
     }
 
     public boolean deleteCategory(String id){
@@ -49,4 +51,10 @@ public class CategoryService {
     public boolean categoryExist(String id){
         return categories.stream().anyMatch(e-> e.getId().equalsIgnoreCase(id));
     }
+
+    public Category getCategoryByID(String id){
+        return categories.stream().filter(e-> e.getId().equalsIgnoreCase(id)).findFirst().orElse(null);
+    }
+    //extra
+
 }
