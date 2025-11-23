@@ -11,6 +11,7 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/product")
@@ -21,7 +22,7 @@ public class productController {
     //crud
     @GetMapping("/get-products")
     public ResponseEntity<?> getProducts(){
-        ArrayList<Product> products = productService.getProducts();
+        List<Product> products = productService.getProducts();
         if(products.isEmpty()){
             return ResponseEntity.status(400).body(new ApiResponse("no products entered yet"));
         }
@@ -43,7 +44,7 @@ public class productController {
     }
 
     @PutMapping("/update-product/{id}")
-    public ResponseEntity<?> updateProduct(@PathVariable String id, @RequestBody @Valid Product product, Errors errors) {
+    public ResponseEntity<?> updateProduct(@PathVariable Integer id, @RequestBody @Valid Product product, Errors errors) {
         if (errors.hasErrors()) {
             return ResponseEntity.status(400).body(new ApiResponse(errors.getFieldError().getDefaultMessage()));
         }
@@ -57,7 +58,7 @@ public class productController {
     }
 
     @DeleteMapping("/delete-product/{id}")
-    public ResponseEntity<?> deleteProduct(@PathVariable String id){
+    public ResponseEntity<?> deleteProduct(@PathVariable Integer id){
         if(productService.deleteProduct(id)){
             return ResponseEntity.status(200).body(new ApiResponse("product deleted successfully"));
         }
@@ -67,7 +68,7 @@ public class productController {
     //extra
     @GetMapping("/get-product-range-category/{min}/{max}/{categoryID}/{sort}")
     public ResponseEntity<?> getProductByRangeCategory(@PathVariable double min , @PathVariable double max,
-                                                       @PathVariable String categoryID, @PathVariable String sort){
+                                                       @PathVariable Integer categoryID, @PathVariable String sort){
         ArrayList<Product> products = productService.productCategoryPrice(min,max,categoryID, sort);
         if(products.isEmpty()){
             return ResponseEntity.status(400).body(new ApiResponse("no products found"));

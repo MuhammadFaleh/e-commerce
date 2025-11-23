@@ -10,6 +10,7 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/merchant")
@@ -20,7 +21,7 @@ public class MerchantController {
     // CRUD
     @GetMapping("/get-merchants")
     public ResponseEntity<?> getMerchants(){
-        ArrayList<Merchant> merchants = merchantService.getMerchants();
+        List<Merchant> merchants = merchantService.getMerchants();
         if(merchants.isEmpty()){
             return ResponseEntity.status(400).body(new ApiResponse("please enter merchants to show them"));
         }
@@ -39,7 +40,7 @@ public class MerchantController {
     }
 
     @PutMapping("/update-merchant/{id}")
-    public ResponseEntity<?> updateMerchant(@PathVariable String id, @RequestBody @Valid Merchant merchant, Errors errors) {
+    public ResponseEntity<?> updateMerchant(@PathVariable Integer id, @RequestBody @Valid Merchant merchant, Errors errors) {
         if (errors.hasErrors()) {
             return ResponseEntity.status(400).body(new ApiResponse(errors.getFieldError().getDefaultMessage()));
         }
@@ -49,7 +50,7 @@ public class MerchantController {
     }
 
     @DeleteMapping("/delete-merchant/{id}")
-    public ResponseEntity<?> deleteMerchant(@PathVariable String id){
+    public ResponseEntity<?> deleteMerchant(@PathVariable Integer id){
         if(merchantService.deleteMerchant(id)){
             return ResponseEntity.status(200).body(new ApiResponse("merchant deleted successfully"));
         }

@@ -10,6 +10,7 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/user")
@@ -20,7 +21,7 @@ public class UserController {
     // CRUD
     @GetMapping("/get-users")
     public ResponseEntity<?> getUsers(){
-        ArrayList<User> users = userService.getUsers();
+        List<User> users = userService.getUsers();
         if(users.isEmpty()){
             return ResponseEntity.status(400).body(new ApiResponse("please enter users to show them"));
         }
@@ -39,7 +40,7 @@ public class UserController {
     }
 
     @PutMapping("/update-user/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable String id, @RequestBody @Valid User user, Errors errors) {
+    public ResponseEntity<?> updateUser(@PathVariable Integer id, @RequestBody @Valid User user, Errors errors) {
         if (errors.hasErrors()) {
             return ResponseEntity.status(400).body(new ApiResponse(errors.getFieldError().getDefaultMessage()));
         }
@@ -50,7 +51,7 @@ public class UserController {
     }
 
     @DeleteMapping("/delete-user/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable String id){
+    public ResponseEntity<?> deleteUser(@PathVariable Integer id){
         if(userService.deleteUser(id)){
             return ResponseEntity.status(200).body(new ApiResponse("user deleted successfully"));
         }
@@ -59,8 +60,8 @@ public class UserController {
 
     // extra
     @PutMapping("/buy-product/{id}/{productID}/{merchantID}")
-    public ResponseEntity<?> buyProduct(@PathVariable String id, @PathVariable String productID,
-                                        @PathVariable String merchantID){
+    public ResponseEntity<?> buyProduct(@PathVariable Integer id, @PathVariable Integer productID,
+                                        @PathVariable Integer merchantID){
         int status = userService.buyProduct(productID, merchantID, id);
         if(status == 1){
             return ResponseEntity.status(200).body(new ApiResponse("item bought successfully"));
@@ -73,7 +74,7 @@ public class UserController {
     }
 
     @PutMapping("/add-balance/{id}/{balance}")
-    public ResponseEntity<?> addBalance(@PathVariable String id, @PathVariable double balance){
+    public ResponseEntity<?> addBalance(@PathVariable Integer id, @PathVariable double balance){
         int status = userService.addBalance(id, balance);
         if(status == -1){
             return ResponseEntity.status(400).body(new ApiResponse("balance can not be 0 or less"));
@@ -85,8 +86,8 @@ public class UserController {
     }
 
     @PutMapping("/return-product/{id}/{productID}/{merchantID}")
-    public ResponseEntity<?> returnProduct(@PathVariable String id, @PathVariable String productID,
-                                        @PathVariable String merchantID){
+    public ResponseEntity<?> returnProduct(@PathVariable Integer id, @PathVariable Integer productID,
+                                        @PathVariable Integer merchantID){
         int status = userService.returnProduct(productID, merchantID, id);
         if(status == 1){
             return ResponseEntity.status(200).body(new ApiResponse("item returned successfully"));

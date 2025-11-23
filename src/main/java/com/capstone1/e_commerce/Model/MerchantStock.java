@@ -1,19 +1,26 @@
 package com.capstone1.e_commerce.Model;
 
+import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
+@NoArgsConstructor
+@Entity
 public class MerchantStock {
-    @NotBlank(message = "merchant stock id must not be empty")
-    private String id;
-    @NotBlank(message = "product id must not be empty")
-    private String productID;
-    @NotBlank(message = "merchant id must not be empty")
-    private String merchantID;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+    @NotNull(message = "product id must not be empty")
+    @Column(columnDefinition = "int")
+    private Integer productID;
+    @NotNull(message = "merchant id must not be empty")
+    @Column(columnDefinition = "int")
+    private Integer merchantID;
     @NotNull(message = "stock must not be empty")
     @Min(value = 11, message = "stock must be more than 10")
-    private int stock;
+    @Column(columnDefinition = "int")
+    private Integer stock;
 }

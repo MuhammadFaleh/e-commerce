@@ -3,6 +3,7 @@ package com.capstone1.e_commerce.Service;
 import com.capstone1.e_commerce.Model.Category;
 import com.capstone1.e_commerce.Model.MerchantStock;
 import com.capstone1.e_commerce.Model.Product;
+import com.capstone1.e_commerce.Repository.MerchantStockRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,22 +17,22 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MerchantStockService {
 
-    ArrayList<MerchantStock> merchantStocks = new ArrayList<>();
+    private final MerchantStockRepository merchantStocks;
     private final MerchantService merchantService;
     private final ProductService productService;
     private final CategoryService categoryService;
 
-    public ArrayList<MerchantStock> getMerchantStocks(){
-        return merchantStocks;
+    public List<MerchantStock> getMerchantStocks(){
+        return merchantStocks.findAll();
     }
 
     public int createMerchantStock(MerchantStock merchantStock){
-        if(merchantStockExist(merchantStock.getId())){
+        if(merchantStockExist(merchantStock.getId()) != null){
             return 0; // Merchant stock already exists
         }
-        if(merchantService.merchantExist(merchantStock.getMerchantID())){
+        if(merchantService.merchantExist(merchantStock.getMerchantID()) != null){
             if(productService.productExist(merchantStock.getProductID()) != null){
-                merchantStocks.add(merchantStock);
+                merchantStocks.save(merchantStock);
                 return 1;
             }
             return -3; // product doesn't exist
@@ -40,17 +41,12 @@ public class MerchantStockService {
 
     }
 
-    public int updateMerchantStock(String id, MerchantStock merchantStock){
-        if(!id.equalsIgnoreCase(merchantStock.getId())){
-            return 0; // merchantStock id doesn't match entered id
-        }
-        if(merchantService.merchantExist(merchantStock.getMerchantID())){
+    public int updateMerchantStock(Integer id, MerchantStock merchantStock){
+        if(merchantService.merchantExist(merchantStock.getMerchantID()) != null){
             if(productService.productExist(merchantStock.getProductID()) != null){
-                for (int i = 0; i<merchantStocks.size(); i++){
-                    if(id.equalsIgnoreCase(merchantStocks.get(i).getId())){
-                        merchantStocks.set(i, merchantStock);
-                        return 1;
-                    }
+                MerchantStock ms = merchantStockExist(id);
+                if(ms!=null){
+                    merchantStocks.delete(ms);
                 }
                 return -4; // merchant stock id doesn't exist
             }
@@ -59,56 +55,60 @@ public class MerchantStockService {
         return -2; // merchant doesn't exist
     }
 
-    public boolean deleteMerchantStock(String id){
-        for (int i = 0; i < merchantStocks.size(); i++) {
-            if(merchantStocks.get(i).getId().equalsIgnoreCase(id)){
-                merchantStocks.remove(i);
-                return true;
-            }
+    public boolean deleteMerchantStock(Integer id){
+        MerchantStock merchantStock = merchantStockExist(id);
+        if (merchantStock!=null){
+            merchantStocks.delete(merchantStock);
         }
         return false;
     }
 
     //logic
-    public boolean merchantStockExist(String id) {
-        return merchantStocks.stream().anyMatch(e-> e.getId().equalsIgnoreCase(id));
+    public MerchantStock merchantStockExist(Integer id) {
+        return merchantStocks.findAll().stream().filter(e-> e.getId().equals(id)).findFirst().orElse(null);
     }
 
-    public Map<String, Integer> getTotalStockForProduct(String productId) {
+    public Map<String, Integer> getTotalStockForProduct(Integer productId) {
         Map<String, Integer> productStocks = new HashMap<>();
         int total = 0;
-        for (MerchantStock stock : merchantStocks) {
+        for (MerchantStock stock : merchantStocks.findAll()) {
             if (stock.getProductID().equals(productId)) {
                 total += stock.getStock();
             }
         }
-        productStocks.put(productId, total);
+        Product product = productService.getProducts().stream().filter(e->e.getId().equals(productId)).findFirst().orElse(null);
+        if(product != null) {
+            productStocks.put(product.getName(), total);
+        }
         return productStocks;
     }
 
-    public int stockHandle(String id, String productID, boolean buy){
-        for (int i = 0; i < merchantStocks.size(); i++) {
-            if(merchantStocks.get(i).getMerchantID().equalsIgnoreCase(id)){
-                if(merchantStocks.get(i).getProductID().equalsIgnoreCase(productID)){
+    public int stockHandle(Integer id, Integer productID, boolean buy){
+        MerchantStock merchantStock = merchantStockExist(id);
+        if(merchantStock != null){
+            if(merchantStock.getProductID().equals(productID)){
                 if(buy){
-                    if(merchantStocks.get(i).getStock() > 0){
-                        merchantStocks.get(i).setStock(merchantStocks.get(i).getStock() - 1);
+                    if (merchantStock.getStock() > 0){
+                        merchantStock.setStock(merchantStock.getStock() - 1);
+                        merchantStocks.save(merchantStock);
                         return 1;
-                    } return -5; // not enough stock
-                }else{
-                    merchantStocks.get(i).setStock(merchantStocks.get(i).getStock() + 1);
-                    return 1;
                     }
-                } return -3; // no product found
+                    return -5;
+                }else {
+                    merchantStock.setStock(merchantStock.getStock() + 1);
+                    return 1;
+                }
             }
+            return -3;
         }
-        return -2; // no merchant found
+        return -2;
+
     }
 
     //extra
     public ArrayList<MerchantStock> getLowStock(double range){
         ArrayList<MerchantStock> lowStocks = new ArrayList<>();
-        for (MerchantStock merchantStock : merchantStocks){
+        for (MerchantStock merchantStock : merchantStocks.findAll()){
             if( merchantStock.getStock() <= range) {
                 lowStocks.add(merchantStock);
             }
@@ -116,25 +116,25 @@ public class MerchantStockService {
         return lowStocks;
     }
 
-    public ArrayList<MerchantStock> getLowStockID(double range, String id){
+    public ArrayList<MerchantStock> getLowStockID(double range, Integer id){
         ArrayList<MerchantStock> lowStocks = new ArrayList<>();
-        for (MerchantStock merchantStock : merchantStocks){
-            if( merchantStock.getStock() <= range && merchantStock.getMerchantID().equalsIgnoreCase(id)) {
+        for (MerchantStock merchantStock : merchantStocks.findAll()){
+            if( merchantStock.getStock() <= range && merchantStock.getMerchantID().equals(id)) {
                 lowStocks.add(merchantStock);
             }
         }
         return lowStocks;
     }
 
-    public int addStock(String merchantStockID, int stock){
+    public int addStock(Integer merchantStockID, int stock){
         if(stock <= 0){
             return -1;
         }
-        for (int i = 0; i < merchantStocks.size() ; i++) {
-            if(merchantStocks.get(i).getId().equalsIgnoreCase(merchantStockID)){
-                merchantStocks.get(i).setStock(merchantStocks.get(i).getStock() + stock);
-                return 1;
-            }
+        MerchantStock merchantStock = merchantStockExist(merchantStockID);
+        if(merchantStock != null){
+            merchantStock.setStock(merchantStock.getStock() + stock);
+            merchantStocks.save(merchantStock);
+            return 1;
         }
         return -2;
     }
@@ -142,7 +142,7 @@ public class MerchantStockService {
     public Map<String, Integer> getCategoryDistribution(){
         Map<String, Integer> distribution = new HashMap<>();
 
-        ArrayList<Product> products = productService.getProducts();
+        List<Product> products = productService.getProducts();
 
         for(Product product: products){
             Category category = categoryService.getCategoryByID(product.getCategoryID());
@@ -152,10 +152,10 @@ public class MerchantStockService {
         return distribution;
     }
 
-    public Map<String, Double> getStockSummary(String merchantID){
+    public Map<String, Double> getStockSummary(Integer merchantID){
         Map<String, Double> invSummary = new HashMap<>();
-        List<MerchantStock> matchedStock =merchantStocks.stream()
-                .filter(e->e.getMerchantID().equalsIgnoreCase(merchantID)).toList();
+        List<MerchantStock> matchedStock =merchantStocks.findAll().stream()
+                .filter(e->e.getMerchantID().equals(merchantID)).toList();
         double totalProducts = 0.0;
         double totalStock = 0.0;
         double productsOutStock = 0.0;

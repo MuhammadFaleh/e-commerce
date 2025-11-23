@@ -2,58 +2,53 @@ package com.capstone1.e_commerce.Service;
 
 import com.capstone1.e_commerce.Model.Category;
 import com.capstone1.e_commerce.Model.Merchant;
+import com.capstone1.e_commerce.Repository.CategoryRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class CategoryService {
-    ArrayList<Category> categories = new ArrayList<>();
+    private final CategoryRepository categories;
 
-    public ArrayList<Category> getCategories(){
-        return categories;
+    public List<Category> getCategories(){
+        return categories.findAll();
     }
 
     public boolean createCategory(Category category){
-        if(categoryExist(category.getId())){
+        if(getCategoryByID(category.getId()) != null){
             return false; // category already exists
         }
-        categories.add(category);
+        categories.save(category);
         return true;
     }
 
-    public boolean updateCategory(String id, Category category){
-        if(!id.equalsIgnoreCase(category.getId())){
-            return false; // Category id doesn't match entered id
-        }
-        for (int i = 0; i< categories.size(); i++){
-            if(id.equalsIgnoreCase(categories.get(i).getId())){
-                categories.set(i, category);
-                return true;
-            }
+    public boolean updateCategory(Integer id, Category category){
+        Category category1 = getCategoryByID(id);
+        if(category1 != null){
+            category1.setName(category.getName());
+            categories.save(category1);
+            return true;
         }
         return false; // category not found
     }
 
-    public boolean deleteCategory(String id){
-        for (int i = 0; i < categories.size(); i++) {
-            if(categories.get(i).getId().equalsIgnoreCase(id)){
-                categories.remove(i);
-                return true;
-            }
+    public boolean deleteCategory(Integer id){
+        Category category1 = getCategoryByID(id);
+        if(category1 != null){
+            categories.delete(category1);
+            return true;
         }
-        return false;
+        return false; // category not found
     }
 
-    //logic
-    public boolean categoryExist(String id){
-        return categories.stream().anyMatch(e-> e.getId().equalsIgnoreCase(id));
-    }
-
-    public Category getCategoryByID(String id){
-        return categories.stream().filter(e-> e.getId().equalsIgnoreCase(id)).findFirst().orElse(null);
+    public Category getCategoryByID(Integer id){
+        if(id == null){
+            return null;
+        }
+        return categories.findAll().stream().filter(e-> e.getId().equals(id)).findFirst().orElse(null);
     }
     //extra
 
